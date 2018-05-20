@@ -1,3 +1,5 @@
+#python test_client.py
+
 import socket
 import json
 import time
@@ -5,8 +7,6 @@ import argparse
 
 # парсим командную строку
 # в зависимости от аргумента - формируем сообщение
-
-
 
 hello_message = {
 "action": "presence",
@@ -35,10 +35,7 @@ parser.add_argument("--port", default=7777, help="Это порт")
 parser.add_argument("--addr", default='', help="Это адрес сервера" )
 
 
-
-
 args = parser.parse_args()
-print(args)
 
 port = int(args.port)
 adress = str(args.addr)
@@ -49,10 +46,19 @@ message_to_send = json.dumps(hello_message)
 s.send(message_to_send.encode('utf-8'))
 
 # Получаем ответ сервера, размер не больше 1024 байт
-data_1 = s.recv(1024)
-print(data_1.decode('utf-8'))
-s.close()
+data_from_server = s.recv(1024).decode('utf-8')
+data_from_server = json.loads(data_from_server)
+print(data_from_server)
 
+# Если ответ 200 - то отправляем следующее сообщение
+if data_from_server['response'] == 200:
+    print('Можно отправлять следующее сообщение')
+
+    s.close()
+
+else:
+    # Потом добавить сюда разные реакции на разные ответы сервера
+    pass
 
 # Отправляем и получаем второе сообщение
 # Сначала также создаем соединение

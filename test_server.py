@@ -12,6 +12,11 @@ probe = {
 "time": time.time(),
 }
 
+responce_200 = {
+"response": 200,
+"alert":"Можете отправлять сообщения"
+}
+
 quit = {
 "action": "quit"
 }
@@ -47,14 +52,15 @@ s.listen(5)
 while True:
     client, addr = s.accept()  # Принять запрос на соединение
 
-    print("Получен запрос на соединение от %s" % str(addr))
+    #print("Получен запрос на соединение от %s" % str(addr))
     data_from_client = client.recv(1024).decode('utf-8')
     data_from_client = json.loads(data_from_client)
     print(data_from_client)
 
 # Проверяем какое это сообщение
     if data_from_client['action'] == 'presence':
-        data_to_send = 'Привет, %s'%(data_from_client['user']['account_name'])
+        data_to_send = json.dumps(responce_200)
+        print('Соединение с %s успешно установлено'%(data_from_client['user']['account_name']))
 
     elif data_from_client['action'] == 'add':
         data_to_send = 'Привет, %s'%(data_from_client['name'])
@@ -64,14 +70,5 @@ while True:
     # <- По сети должны передаваться байты, поэтому выполняется кодирование строки
     client.send(data_to_send.encode('utf-8'))
 
-# Получаем второе сообщение от клиента
-    #client, addr = s.accept()
-    #data_from_client = client.recv(1024)
-    #print(data_from_client.decode('utf-8'))
-    #if 'Пока' in data_from_client.decode('utf-8'):
-    #client.send('Пока, друг'.encode('utf-8'))
-
-    # Закрываем соединение
-    #client.close()
 client.close()
 
