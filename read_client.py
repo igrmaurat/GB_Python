@@ -4,7 +4,7 @@
 from socket import socket, AF_INET, SOCK_STREAM
 
 
-ADDRESS = ('localhost', 9888)
+ADDRESS = ('localhost', 8888)
 
 
 class ClientRead:
