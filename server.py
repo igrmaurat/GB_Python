@@ -6,6 +6,8 @@ import time
 import select
 from socket import socket, AF_INET, SOCK_STREAM
 import jim_to_bytes
+import sql_module
+import time
 
 def new_listen_socket(address):
     sock = socket(AF_INET, SOCK_STREAM)
@@ -31,8 +33,35 @@ def mainloop():
 
         else:
             print("Получен запрос на соединение с %s" % str(addr))
+            _ip, _port = addr
             clients.append(conn)
-            # Здесь строка записи в базу клиента и времени подключения
+
+            # Здесь запись в базу porta и ip клиента и времени подключения
+
+            db_name = 'mydatabase.db3'
+            table_name = 'connection_table'
+            user_name = _ip # Добавить имя из запроса клиента
+            _nick = _port # Добавить ник из запроса клиента
+            timestamp = time.ctime(time.time())
+
+            request_create = """ create table if not exists {} (
+                                id  INTEGER primary key autoincrement,
+                                name TEXT,
+                                nick_name TEXT,
+                               timestamp Text
+                            );
+                            """.format(table_name)
+
+            request_insert = """insert into {} (name, nick_name, timestamp)
+                            VALUES (?, ?, ?);""".format(table_name)
+
+            try:
+                # Пишем в базу данные о сеансе
+
+                sql_module.make_sql_request(db_name, table_name, request_create, request_insert, user_name, _nick, timestamp)
+            except:
+                # Добавить обработку исключений позже - ручное прерывание оставить. Остальные пасс пока
+                pass
 
         finally:
             # Проверить наличие событий ввода-вывода без таймаута
@@ -59,6 +88,8 @@ def mainloop():
                     data = jim_to_bytes.bytes_to_json(s_client.recv(1024))
                     # Если 'presence' - не отправляем всем, пишем в базу данные о сеансе
                     if data['action'] == 'presence':
+
+                        # Вместо print реализовать запись в базу данных о сеансе
                         print(data)
                         pass
                         # добавить запись данных в базу
@@ -66,6 +97,7 @@ def mainloop():
                     # Позже добавить в исключение autentificate и другие типы сообщений
                     elif data['action'] == 'msg':
                         print(data)
+
                         for read_client in w:
                             #read_client.send(b'It is Test') # Добавить расшифровку ascii
                             read_client.send(jim_to_bytes.to_bytes(data))
